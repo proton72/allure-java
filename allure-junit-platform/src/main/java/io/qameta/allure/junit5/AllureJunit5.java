@@ -24,9 +24,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static io.qameta.allure.model.Status.FAILED;
-import static io.qameta.allure.model.Status.PASSED;
-import static io.qameta.allure.model.Status.SKIPPED;
+import static io.qameta.allure.model.Status.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
@@ -158,7 +156,12 @@ public class AllureJunit5 implements TestExecutionListener {
     }
 
     protected String getHistoryId(final TestIdentifier testIdentifier) {
-        return md5(testIdentifier.getUniqueId());
+        String retryableTestUniqueId = testIdentifier.getSource()
+                .filter(it -> it instanceof MethodSource)
+                .map(it -> (MethodSource) it)
+                .map(it -> it.getClassName() + it.getMethodName() + it.getMethodParameterTypes())
+                .orElse(testIdentifier.getUniqueId());
+        return md5(retryableTestUniqueId);
     }
 
     private String md5(final String source) {
